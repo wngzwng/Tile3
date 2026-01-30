@@ -14,27 +14,28 @@ Console.WriteLine("Hello, World!");
 // Console.WriteLine(level);
 
 
-// var colors = new Dictionary<char, int>
-// {
-//     ['a'] = 2,
-//     ['b'] = 4,
-//     ['c'] = 6,
-//     ['d'] = 4,
-//     ['e'] = 2
-// };
-// var capacity = 4;
-// var k = 2;
-
 var colors = new Dictionary<char, int>
 {
-    ['a'] = 3,
-    ['b'] = 6,
+    ['a'] = 2,
+    ['b'] = 4,
     ['c'] = 6,
-    ['d'] = 3,
-    ['e'] = 9
+    ['d'] = 4,
+    ['e'] = 2
 };
-var capacity = 7;
-var k = 3;
-string seq = Tile3SequenceBuilder.BuildSelf(colors, capacity: capacity, k: k);
+var capacity = 4;
+var k = 2;
+
+// var colors = new Dictionary<char, int>
+// {
+//     ['a'] = 3,
+//     ['b'] = 6,
+//     ['c'] = 6,
+//     ['d'] = 3,
+//     ['e'] = 9
+// };
+// var capacity = 7;
+// var k = 3;
+// string seq = Tile3SequenceBuilder.BuildSelf(colors, capacity: capacity, k: k);
+string seq = ColorBuilder.Build(colors, capacity: capacity, k, ColorMode.Max, SlotMode.MaxConcurrent);
 Console.WriteLine(seq);
 Tile3SlotSimulator.Simulate(seq, capacity, k);
