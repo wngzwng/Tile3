@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Text;
 using ThreeTile.Core.Designer;
 using ThreeTile.Core.ExtensionTools;
 
@@ -14,28 +15,23 @@ Console.WriteLine("Hello, World!");
 // Console.WriteLine(level);
 
 
-var colors = new Dictionary<char, int>
+var config = new DistributeConfig()
 {
-    ['a'] = 2,
-    ['b'] = 4,
-    ['c'] = 6,
-    ['d'] = 4,
-    ['e'] = 2
+    TotalCount = 3 * 26,
+    AvailableColorCount = 8,
+    DistributeMode = ColorDistributor.ColorDistributeMode.Specified,
+    MatchRequireCount = 3,
+    NormalMaxColorPairCount = 2,
+    RoundCount = 10,
 };
-var capacity = 4;
-var k = 2;
+var colors = ColorDistributor.Distribute(config);
+Console.WriteLine(ColorDistributor.FormattingColorsByPairLines(colors, config.MatchRequireCount));
 
-// var colors = new Dictionary<char, int>
-// {
-//     ['a'] = 3,
-//     ['b'] = 6,
-//     ['c'] = 6,
-//     ['d'] = 3,
-//     ['e'] = 9
-// };
-// var capacity = 7;
-// var k = 3;
-// string seq = Tile3SequenceBuilder.BuildSelf(colors, capacity: capacity, k: k);
-string seq = ColorBuilder.Build(colors, capacity: capacity, k, ColorMode.Max, SlotMode.MaxConcurrent);
-Console.WriteLine(seq);
-Tile3SlotSimulator.Simulate(seq, capacity, k);
+
+var slotCapacity = 4;
+var matchRequireCout = config.MatchRequireCount;
+
+var seq = ColorBuilder.Build(colors, capacity: slotCapacity, matchRequireCout, ColorMode.Random, SlotMode.MaxConcurrent);
+var s = seq.Select(number => GameStringTools.IndexToLetter(number)).ToArray();
+Console.WriteLine(s);
+// Tile3SlotSimulator.Simulate(new String(s), slotCapacity, matchRequireCout);

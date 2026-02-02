@@ -17,8 +17,8 @@ public enum ColorMode
 
 public enum SlotMode
 {
-    MaxConcurrent, // 最大颜色并发数
-    DangerLine     // 容量死线
+    MaxConcurrent, // 最大颜色并发数   Math.floor((capacity - 1) / (k -1))
+    DangerLine     // 容量死线   capcacity - (k - 1)
 }
 
 // ─────────────────────────────────────────────
@@ -26,17 +26,17 @@ public enum SlotMode
 // ─────────────────────────────────────────────
 public interface IColorStructurePolicy
 {
-    IReadOnlyList<char> GetCandidates(
-        IReadOnlyDictionary<char, int> remaining,
-        IReadOnlyDictionary<char, int> slots,
+    IReadOnlyList<int> GetCandidates(
+        IReadOnlyDictionary<int, int> remaining,
+        IReadOnlyDictionary<int, int> slots,
         int used,
         int capacity,
         int k
     );
 
     int GetRequireCount(
-        char selectColor,
-        IReadOnlyDictionary<char, int> slots,
+        int selectColor,
+        IReadOnlyDictionary<int, int> slots,
         int k
     );
 }
@@ -46,9 +46,9 @@ public interface IColorStructurePolicy
     /// </summary>
     public sealed class MaxConcurrentTypesPolicy : IColorStructurePolicy
     {
-        public IReadOnlyList<char> GetCandidates(
-            IReadOnlyDictionary<char, int> remaining,
-            IReadOnlyDictionary<char, int> slots,
+        public IReadOnlyList<int> GetCandidates(
+            IReadOnlyDictionary<int, int> remaining,
+            IReadOnlyDictionary<int, int> slots,
             int used,
             int capacity,
             int k)
@@ -66,8 +66,8 @@ public interface IColorStructurePolicy
         }
 
         public int GetRequireCount(
-            char selectColor,
-            IReadOnlyDictionary<char, int> slots,
+            int selectColor,
+            IReadOnlyDictionary<int, int> slots,
             int k)
         {
             return 1;
@@ -79,9 +79,9 @@ public interface IColorStructurePolicy
     /// </summary>
     public sealed class DangerCapacityPolicy : IColorStructurePolicy
     {
-        public IReadOnlyList<char> GetCandidates(
-            IReadOnlyDictionary<char, int> remaining,
-            IReadOnlyDictionary<char, int> slots,
+        public IReadOnlyList<int> GetCandidates(
+            IReadOnlyDictionary<int, int> remaining,
+            IReadOnlyDictionary<int, int> slots,
             int used,
             int capacity,
             int k)
@@ -99,8 +99,8 @@ public interface IColorStructurePolicy
         }
         
         public int GetRequireCount(
-            char selectColor,
-            IReadOnlyDictionary<char, int> slots,
+            int selectColor,
+            IReadOnlyDictionary<int, int> slots,
             int k)
         {
             if (slots.TryGetValue(selectColor, out var count))
@@ -114,10 +114,10 @@ public interface IColorStructurePolicy
     // ─────────────────────────────────────────────
     public interface IColorPreferencePolicy
     {
-        char Pick(
-            IReadOnlyList<char> candidates,
-            IReadOnlyDictionary<char, int> slots,
-            IReadOnlyDictionary<char, int> remaining,
+        int Pick(
+            IReadOnlyList<int> candidates,
+            IReadOnlyDictionary<int, int> slots,
+            IReadOnlyDictionary<int, int> remaining,
             Random rng
         );
     }
@@ -136,10 +136,10 @@ public interface IColorStructurePolicy
         
        
 
-        public char Pick(
-            IReadOnlyList<char> candidates,
-            IReadOnlyDictionary<char, int> slots,
-            IReadOnlyDictionary<char, int> remaining,
+        public int Pick(
+            IReadOnlyList<int> candidates,
+            IReadOnlyDictionary<int, int> slots,
+            IReadOnlyDictionary<int, int> remaining,
             Random rng)
         {
             return _mode switch
@@ -163,9 +163,9 @@ public interface IColorStructurePolicy
             };
             
             
-            static char WeightedRandom(
-                IReadOnlyList<char> candidates,
-                Func<char, double> weightFn,
+            static int WeightedRandom(
+                IReadOnlyList<int> candidates,
+                Func<int, double> weightFn,
                 Random rng)
             {
                 double total = 0;
@@ -192,8 +192,8 @@ public interface IColorStructurePolicy
     // ─────────────────────────────────────────────
     public static class ColorBuilder
     {
-        public static string Build(
-            IReadOnlyDictionary<char, int> colorCounts,
+        public static List<int> Build(
+            IReadOnlyDictionary<int, int> colorCounts,
             int capacity,
             int k,
             ColorMode colorMode,
@@ -236,8 +236,8 @@ public interface IColorStructurePolicy
         }
         
         
-        public static string BuildCore(
-            IReadOnlyDictionary<char, int> colorCounts,
+        public static List<int> BuildCore(
+            IReadOnlyDictionary<int, int> colorCounts,
             int capacity,
             int k,
             IColorStructurePolicy structurePolicy,
@@ -254,19 +254,19 @@ public interface IColorStructurePolicy
 
             foreach (var (c, n) in colorCounts)
                 if (n % k != 0)
-                    throw new ArgumentException($"颜色 {c} 的数量 {n} 不是 k 的倍数");
+                    throw new ArgumentException($"颜色 ({c}) 的数量 ({n}) 不是 k({k}) 的倍数");
 
             // ─────────────────────────
             // 核心状态
             // ─────────────────────────
-            var remaining = new Dictionary<char, int>(colorCounts);
-            var slots     = new Dictionary<char, int>();
+            var remaining = new Dictionary<int, int>(colorCounts);
+            var slots     = new Dictionary<int, int>();
 
             int used = 0;
             int left = remaining.Values.Sum();
 
             var rng = seed.HasValue ? new Random(seed.Value) : new Random();
-            var sb  = new StringBuilder();
+            var result = new List<int>();
 
             // ─────────────────────────
             // 主循环
@@ -279,21 +279,21 @@ public interface IColorStructurePolicy
                 if (candidates.Count == 0)
                     throw new InvalidOperationException("结构策略返回了空候选集");
 
-                char c = preferencePolicy.Pick(
+                int c = preferencePolicy.Pick(
                     candidates, slots, remaining, rng);
                 int count = structurePolicy.GetRequireCount(c, slots, k);
-                Emit(c, count);
+                Emit(c, count, result);
             }
 
-            return sb.ToString();
+            return result;
 
             // ─────────────────────────
             // 核心动作
             // ─────────────────────────
-            void Emit(char c, int count)
+            void Emit(int c, int count, List<int> collector)
             {
                 for(var i = 0; i < count; i++)
-                    sb.Append(c);
+                    collector.Add(c);
 
                 remaining[c] -= count;
                 if (remaining[c] == 0)
@@ -313,5 +313,13 @@ public interface IColorStructurePolicy
                 if (used >= capacity)
                     throw new InvalidOperationException("进入死锁态（理论上不应发生）");
             }
+        }
+
+        public static  string FormatColorDict(Dictionary<int, int> colors)
+        {
+            var counts = string.Join("\n",
+                colors.OrderBy(kv => kv.Key)
+                    .Select(kv => $"'{kv.Key}':{kv.Value}"));
+            return counts;
         }
     }

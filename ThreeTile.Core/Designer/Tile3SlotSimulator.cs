@@ -32,7 +32,8 @@ public sealed class Tile3SlotSimulator
 
         // 只跟踪序列中出现过的颜色
         var colors = sequence.Distinct().ToArray();
-        var slot = colors.ToDictionary(c => c, _ => 0);
+        // var slot = colors.ToDictionary(c => c, _ => 0);
+        var slot = new Dictionary<char, int>();
 
         int used = 0;
         var logs = new List<StepLog>(sequence.Length);
@@ -40,18 +41,19 @@ public sealed class Tile3SlotSimulator
         for (int i = 0; i < sequence.Length; i++)
         {
             char c = sequence[i];
-            if (!slot.ContainsKey(c))
-                slot[c] = 0; // 理论上不会发生，因为上面 Distinct 初始化了
+            // if (!slot.ContainsKey(c))
+            //     slot[c] = 0; // 理论上不会发生，因为上面 Distinct 初始化了
 
             used += 1;
-            slot[c] += 1;
+            slot[c] = slot.GetValueOrDefault(c, 0) + 1;
 
             bool eliminated = false;
             if (slot[c] == k)
             {
                 eliminated = true;
                 used -= k;
-                slot[c] = 0;
+                // slot[c] = 0;
+                slot.Remove(c);
             }
 
             if (used > capacity)
@@ -84,7 +86,7 @@ public sealed class Tile3SlotSimulator
         {
             var counts = string.Join(" ",
                 slotCounts.OrderBy(kv => kv.Key)
-                          .Select(kv => $"{kv.Key}:{kv.Value}"));
+                          .Select(kv => $"'{kv.Key}':{kv.Value}"));
 
             return $"#{step:00} in={c}  elim={(eliminated ? "Y" : "N")}  used={used}/{capacity}  [{counts}]";
         }

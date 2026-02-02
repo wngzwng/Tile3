@@ -73,7 +73,7 @@ public static class GameStringTools
     /// <br/> - A-Z => 10~35
     /// <br/> - a-z => 36~61
     /// </summary>
-    private static int LetterToIndex(char letter)
+    public static int LetterToIndex(char letter)
     {
         return letter switch
         {
@@ -141,7 +141,7 @@ public static class GameStringTools
     /// <param name="index">整数。</param>
     /// <returns>字符。</returns>
     /// <exception cref="InvalidOperationException">整数越界。</exception>
-    private static char IndexToLetter(this int index)
+    public static char IndexToLetter(this int index)
         => index switch
         {
             < 10 => (char)(index + '0'),
