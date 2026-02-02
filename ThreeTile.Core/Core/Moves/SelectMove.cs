@@ -42,6 +42,7 @@ public class SelectMove(int tileIndex) : Move
                 .Select(t => t.Index)
                 .ToList();
         
+            level.StagingArea.Remove(group);
             // 4. 送入围栏（完成态）
             level.Corral.Accept(group);
         }

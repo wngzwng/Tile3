@@ -17,6 +17,7 @@ public sealed class Corral
 
     public IReadOnlyDictionary<int, int> ColorCounter => _colorCounter;
 
+    public IReadOnlyList<Tile> Tiles => _orderedTiles;
     public Corral(Level parent)
     {
         Parent = parent;

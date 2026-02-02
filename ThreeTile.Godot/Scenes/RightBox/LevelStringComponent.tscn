@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1r67pinmbjyx"]
+
+[ext_resource type="Script" uid="uid://coblr17tekbrx" path="res://Scenes/RightBox/LevelStringComponent.cs" id="1_n3ee4"]
+
+[node name="LevelStringComponent" type="HBoxContainer" node_paths=PackedStringArray("_textEdit", "_button")]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_n3ee4")
+_textEdit = NodePath("TextEdit")
+_button = NodePath("Button")
+
+[node name="TextEdit" type="TextEdit" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+wrap_mode = 1
+autowrap_mode = 1
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40

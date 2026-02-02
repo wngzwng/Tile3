@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3 uid="uid://dwmpwvu3slmh7"]
+
+[ext_resource type="Script" uid="uid://b5veh8p7er3m0" path="res://Scenes/MainScene.cs" id="1_rfu1n"]
+[ext_resource type="PackedScene" path="res://Scenes/MainContainer.tscn" id="2_hcm6b"]
+
+[node name="MainScene" type="Node2D" node_paths=PackedStringArray("MainContainer", "AlertLabel")]
+script = ExtResource("1_rfu1n")
+MainContainer = NodePath("MainContainer")
+AlertLabel = NodePath("AlertLabel")
+
+[node name="MainContainer" parent="." instance=ExtResource("2_hcm6b")]
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 116.0
+offset_bottom = 93.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="AlertLabel" type="Label" parent="."]
+offset_right = 1.0
+offset_bottom = 197.0
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 140
+horizontal_alignment = 1
+vertical_alignment = 1

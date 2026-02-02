@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://iqxmnruxkx3p"]
+
+[ext_resource type="Script" uid="uid://cuiirfs41upx7" path="res://Scenes/RightBox/DeathReasonAnalyseComponent.cs" id="2_w1nrr"]
+
+[node name="SolveComponent" type="HBoxContainer" node_paths=PackedStringArray("Button", "DeathInfoLabel", "ScrollContainer")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_w1nrr")
+Button = NodePath("Button")
+DeathInfoLabel = NodePath("ScrollContainer/DeathInfoLabel")
+ScrollContainer = NodePath("ScrollContainer")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+
+[node name="DeathInfoLabel" type="Label" parent="ScrollContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 35

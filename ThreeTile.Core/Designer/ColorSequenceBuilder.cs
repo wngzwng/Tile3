@@ -11,7 +11,6 @@ public enum ColorMode
     Random = 0,    // 随机
     Max = 1,       // 偏好 slots 中数量多的
     Min = 2,       // 偏好 slots 中数量少的
-    Specified = 3  // 指定颜色
 }
 
 
@@ -218,7 +217,6 @@ public interface IColorStructurePolicy
                 ColorMode.Random    => new ColorModePreferencePolicy(ColorMode.Random),
                 ColorMode.Max       => new ColorModePreferencePolicy(ColorMode.Max),
                 ColorMode.Min       => new ColorModePreferencePolicy(ColorMode.Min),
-                ColorMode.Specified => new ColorModePreferencePolicy(ColorMode.Specified),
                 _ => throw new ArgumentOutOfRangeException(nameof(colorMode))
             };
 

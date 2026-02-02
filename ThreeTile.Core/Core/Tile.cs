@@ -86,7 +86,8 @@ public sealed class Tile : IEquatable<Tile>
         Index = index;
         Color = color;
         Volume = volume ?? DefaultVolume;
-        
+
+        TilePositionIndex = position;
         Coordinates = BuildCoordinates(position, Volume);
         TopCoordinates = BuildTopCoordinates(position, Volume);
         TopZ = ComputeTopZ(position, Volume);

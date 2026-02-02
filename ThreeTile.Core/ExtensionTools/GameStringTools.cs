@@ -92,8 +92,13 @@ public static class GameStringTools
     public static string Serialize(this Level level)
     {
         // 将麻将标准化为以层号、行号、列号排序的方式，以免某些竞品不知道怎么写出来的若至逻辑导致顺序混乱
-        var mahjongs =
-            level.Pasture.Tiles
+        return level.Pasture.Tiles.Serialize();
+    }
+    
+    public static string Serialize(this IEnumerable<Tile> tiles)
+    {
+        // 将麻将标准化为以层号、行号、列号排序的方式，以免某些竞品不知道怎么写出来的若至逻辑导致顺序混乱
+        var mahjongs = tiles
                 .OrderBy(m => m.TilePositionIndex.Z())
                 .ThenBy(m => m.TilePositionIndex.Y())
                 .ThenBy(m => m.TilePositionIndex.X())

@@ -106,6 +106,22 @@ _ReSharper*/
 *.swp
 *.orig
 
+# Godot 4+ specific ignores
+.godot/
+/android/
+/.idea
+
+# Visual Studio ignores
+/.vs
+**/bin
+**/obj
+**/Properties/
+*.user
+*/.idea
+*.csproj
+*./android
+*.7z
+
 # 用户自定义忽略规则（根据需要添加）
 *.xls
 *.csv

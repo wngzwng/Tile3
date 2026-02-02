@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3 uid="uid://dnsf4o8qhfs7f"]
+
+[ext_resource type="Script" uid="uid://bd1gsiiphtht" path="res://Scenes/RightBox/RightBox.cs" id="1_6r3h1"]
+[ext_resource type="PackedScene" uid="uid://c1r67pinmbjyx" path="res://Scenes/RightBox/LevelStringComponent.tscn" id="2_jhbwj"]
+[ext_resource type="PackedScene" uid="uid://c5evi1oy2b280" path="res://Scenes/RightBox/SolveComponent.tscn" id="3_qpg8j"]
+[ext_resource type="PackedScene" uid="uid://d03ef5f17mqq7" path="res://Scenes/RightBox/FillColorComponent.tscn" id="4_qpg8j"]
+[ext_resource type="PackedScene" uid="uid://iqxmnruxkx3p" path="res://Scenes/RightBox/DeathReasonAnalyseComponent.tscn" id="5_ys0fm"]
+
+[node name="RightBox" type="VBoxContainer" node_paths=PackedStringArray("LevelStringComponent", "SolveComponent", "FillColorComponent")]
+script = ExtResource("1_6r3h1")
+LevelStringComponent = NodePath("LevelStringComponent")
+SolveComponent = NodePath("SolveComponent")
+FillColorComponent = NodePath("FillColorComponent")
+
+[node name="LevelStringComponent" parent="." instance=ExtResource("2_jhbwj")]
+layout_mode = 2
+
+[node name="SolveComponent" parent="." instance=ExtResource("3_qpg8j")]
+layout_mode = 2
+
+[node name="FillColorComponent" parent="." instance=ExtResource("4_qpg8j")]
+layout_mode = 2
+
+[node name="SolveComponent2" parent="." instance=ExtResource("5_ys0fm")]
+layout_mode = 2

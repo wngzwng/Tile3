@@ -49,7 +49,7 @@ public class ColorDistributor
         int remainingColors = config.AvailableColorCount;
 
         // 每个元素 = 该花色的 Tile 数
-        List<int> colorTileCounts = new();
+        List<int> colorTileCounts = new() ;
 
         #region 处理特殊花色
 
