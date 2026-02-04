@@ -1,4 +1,5 @@
 ﻿using ThreeTile.Core.Core;
+using ThreeTile.Core.ExtensionTools;
 
 namespace Tile3.AutoLoads;
 
@@ -17,4 +18,9 @@ public readonly struct TileDto
 
     public static TileDto GetTileDtoFromTile(Tile tile) 
         => new(tile.Index, tile.TilePositionIndex, tile.Volume, tile.Color, tile.IsLocked, tile.IsVisible);
+
+    public override string ToString()
+    {
+        return $"{index},{position.UnpackXyz()},{volume.UnpackXyz()},{color},{isLocked},{isVisible}";
+    }
 }

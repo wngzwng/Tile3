@@ -29,4 +29,10 @@ public readonly struct LevelDto(int size)
             ).PackXyz()
         );
     }
+
+    public override string ToString()
+    {
+        var (x, y, z) = size.UnpackXyz();
+        return $"{x},{y},{z}";
+    }
 }

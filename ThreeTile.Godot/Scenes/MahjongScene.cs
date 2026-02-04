@@ -11,6 +11,7 @@ public partial class MahjongScene : Control
 {
     [Export] public TextureRect ModelTexture;
     [Export] public TextureRect ColorTexture;
+    
 
     /// 牌面资源中，宽度上边框的占比
     private const float WidthBorderRatio = 0.0802395210f;
@@ -37,6 +38,14 @@ public partial class MahjongScene : Control
     /// </summary>
     public void SetColor(int color)
     {
+        if (color < 0 || color >= ColorTextures.Length)
+        {
+            GD.PushError(
+                $"[SetColor] color out of range: {color}, len={ColorTextures.Length}"
+            );
+            return;
+        }
+        
         if (color > MaxColorIndex)
         {
             ColorTexture.Hide();
@@ -47,6 +56,11 @@ public partial class MahjongScene : Control
         }
         SetMahjongBehavior();
     }
+    
+    public int Index { get; private set; }
+
+    public void SetIndex(int index) => Index = index;
+    
 
     /// <summary>
     /// 根据麻将实例当前的大小，更新牌面模型图片和花色图片的位置和缩放

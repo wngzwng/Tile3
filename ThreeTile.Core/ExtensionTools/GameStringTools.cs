@@ -47,6 +47,11 @@ public static class GameStringTools
 
         #region 解析第二段，也就是花色字符串
 
+        if (s.Length > 2)
+        {
+            throw new ArgumentException("关卡字符串不合法，: 分割的段超过2段");
+        }
+
         var colorStr = s.Length == 2 ? s[1] : "";
         var colors = colorStr.Length == tilePositions.Count  //检查花色数是否与麻将数匹配
             ? colorStr.Select(LetterToIndex).ToArray()

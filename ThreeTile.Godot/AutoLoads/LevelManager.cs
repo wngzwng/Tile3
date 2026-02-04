@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Godot;
@@ -16,6 +17,8 @@ public sealed partial class LevelManager: Node
 {
     public static LevelManager Instance { get; private set; }
     private Level _levelCore = null;
+
+    private Tile3ColorFiller _tile3ColorFiller;
     // private LevelInfoAnalyser _levelInfoAnalyser;
     // public DeathReasonAnalyser DeathReasonAnalyser;
     private static readonly Stopwatch Timer = new();
@@ -27,7 +30,19 @@ public sealed partial class LevelManager: Node
     {
         int pairCount = 3;
         int slotCapacity = 7;
-        _levelCore = str.Deserialize(pairCount: pairCount, slotCapacity: slotCapacity);
+        try
+        {
+            _levelCore = str.Deserialize(pairCount: pairCount, slotCapacity: slotCapacity);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            GD.Print(e);
+            EventBus.Instance.EmitSignal(EventBus.SignalName.Alert, "解析错误");
+            return;
+        }
+        GD.Print(str);
+        GD.Print(_levelCore.Pasture.Tiles[0]);
         UpdateMahjongDtos();
         UpdateLevelDto();
         EventBus.Instance.EmitSignal(EventBus.SignalName.InitMahjongContainerDisplay);
@@ -77,10 +92,31 @@ public sealed partial class LevelManager: Node
     private void FillColor(int colorMode, int roundCount)
     {
         EventBus.Instance.EmitSignal(EventBus.SignalName.Alert, "染色逻辑启动");
-        // var designer = new Tile3ColorFiller(_levelCore, (Tile2ColorFiller.ColorMode)colorMode, roundCount);
-        // designer.Design();
-        // DisplayServer.ClipboardSet(designer.NewLevel.Serialize());
-        // EventBus.Instance.EmitSignal(EventBus.SignalName.Alert, "已复制到剪贴板");
+        
+        var config = new DistributeConfig()
+        {
+            TotalCount = _levelCore.Pasture.Tiles.Count,
+            AvailableColorCount = 26,
+            DistributeMode = ColorDistributor.ColorDistributeMode.Random,
+            MatchRequireCount = 3,
+            NormalMaxColorPairCount = 2,
+            RoundCount = 10,
+        };
+        
+        var designer = new Tile3ColorFiller(_levelCore.Clone(), config, 7);
+        try
+        {
+            designer.Design();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            GD.Print(e);
+            EventBus.Instance.EmitSignal(EventBus.SignalName.Alert, "染色失败");
+            return;
+        }
+        DisplayServer.ClipboardSet(designer.ColoredString);
+        EventBus.Instance.EmitSignal(EventBus.SignalName.Alert, "已复制到剪贴板");
     }
     
     public override void _Ready()

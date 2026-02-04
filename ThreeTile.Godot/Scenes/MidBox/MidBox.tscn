@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://dg2ri12alo2mj"]
 
-[ext_resource type="Script" uid="uid://v4nxy2ntphrk" path="res://Scene/MidBox/MidBox.cs" id="1_imj7a"]
-[ext_resource type="PackedScene" uid="uid://b2e8p3rrkqcfp" path="res://Scene/MidBox/MahjongContainer.tscn" id="2_vdta4"]
+[ext_resource type="Script" uid="uid://v4nxy2ntphrk" path="res://Scenes/MidBox/MidBox.cs" id="1_imj7a"]
+[ext_resource type="PackedScene" uid="uid://b2e8p3rrkqcfp" path="res://Scenes/MidBox/MahjongContainer.tscn" id="2_vdta4"]
 
 [node name="MidBox" type="VBoxContainer" node_paths=PackedStringArray("MahjongContainer")]
 script = ExtResource("1_imj7a")

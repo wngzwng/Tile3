@@ -34,6 +34,10 @@ public sealed class Tile3ColorFiller
 
     private static readonly Random _rng = new();
 
+    private string _coloredString;
+
+    public string ColoredString => _coloredString;
+
     // ─────────────────────────────
     // 构造
     // ─────────────────────────────
@@ -126,7 +130,8 @@ public sealed class Tile3ColorFiller
             Console.WriteLine(tile);
         }
 
-        Console.WriteLine(_designingLevel.Corral.Tiles.Serialize());
+        _coloredString = _designingLevel.Corral.Tiles.Serialize();
+        Console.WriteLine(_coloredString);
     }
 
     // ─────────────────────────────
