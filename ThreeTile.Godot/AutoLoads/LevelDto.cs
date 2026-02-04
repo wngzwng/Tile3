@@ -23,8 +23,8 @@ public readonly struct LevelDto(int size)
         return new LevelDto
         (
             (
-                maxX,
-                maxY,
+                maxX + 2,
+                maxY + 2,
                 maxZ
             ).PackXyz()
         );

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bopftn641pshv" path="res://Scenes/MidBox/MahjongContainer.cs" id="1_apvaf"]
 [ext_resource type="PackedScene" uid="uid://bvct0tf5ayr8m" path="res://Scenes/MahjongScene.tscn" id="2_hx4ie"]
-[ext_resource type="PackedScene" uid="uid://par4tkhdqopd" path="res://Scenes/MidBox/SlotContainer.tscn" id="3_cs3h6"]
+[ext_resource type="PackedScene" uid="uid://17vrdkr4covk" path="res://Scenes/MidBox/SlotContainer.tscn" id="3_cs3h6"]
 
 [node name="MahjongContainer" type="Control"]
 layout_mode = 3

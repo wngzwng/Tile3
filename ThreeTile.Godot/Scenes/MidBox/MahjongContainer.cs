@@ -50,7 +50,8 @@ public partial class MahjongContainer : Control
 	#region 卡槽相关的参数
 
 	private int _slotCapacity = 7;
-	private float _boardAndSlotGapRatio = 2f;
+	private float _boardAndSlotGapRatio = 1f;
+	private int _normalTileVolume = (2, 2, 1).PackXyz();
 	#endregion
 
 	private SlotContainer _slot;
@@ -64,27 +65,31 @@ public partial class MahjongContainer : Control
 		 * 长度宽度就是单层的长宽加上长宽对应的层偏移
 		 * - 有 n 层就需要 (n - 1) 个层偏移
 		 */
-		_levelSizeXRatio = (level.Size.X() + MahjongSizeXScaleFactor - 1) * MahjongCellXRatio + (level.Size.Z() - 1) * MahjongLayerXOffset;
-		_levelSizeYRatio = (level.Size.Y() + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio + (level.Size.Z() - 1) * MahjongLayerYOffset;
+		var originSizeXRatio = (level.Size.X() + MahjongSizeXScaleFactor - 1) * MahjongCellXRatio + (level.Size.Z() - 1) * MahjongLayerXOffset;
+		var originSizeYRatio = (level.Size.Y() + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio + (level.Size.Z() - 1) * MahjongLayerYOffset;
 
 		// 在加上卡槽的高度
-		var originXRatio = _levelSizeXRatio;
-		var originYRatio = _levelSizeYRatio;
-		_levelSizeXRatio += Math.Max(0, (_slotCapacity - level.Size.X()) * MahjongCellXRatio);
-		_levelSizeYRatio += ((1 + _boardAndSlotGapRatio + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio);
+		var slotSizeXRatio = Math.Max(0, (_slotCapacity * 2 - level.Size.X()) * MahjongCellXRatio);
+		var slotSizeYRatio = ((1 + _boardAndSlotGapRatio + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio);
+
+		_levelSizeXRatio = originSizeXRatio + slotSizeXRatio;
+		_levelSizeYRatio = originSizeYRatio + slotSizeYRatio;
 		
 		var containerRatio = Size.Y / Size.X; // 现在麻将容器的高 / 宽
 		var levelOriginalRatio = _levelSizeYRatio / _levelSizeXRatio; // 现在关卡显示比例的高 / 宽
-		
+
+		var unit = 0f;
 		// 为保证适配正常，需要分两种情况计算麻将偏移，以及计算整个容器的宽度和麻将宽度的比例
 		if (containerRatio >= levelOriginalRatio) // 宽度相同，容器高度偏高
 		{
 			// 第一个麻将的初始位置 紧贴左边，关卡上下居中是的左上角位置   这是最上层的第一个麻将
 			// _mahjongGlobalOffset = new Vector2(0, (Size.Y - Size.X * levelOriginalRatio) / 2); // 如果容器的高宽比高于原始高宽比，则麻将容器从 0 开始
 			_containerSizeXRatio = _levelSizeXRatio; 
-			_mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio;
-			var adaptHeight = Size.Y - ((1 + _boardAndSlotGapRatio + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio) * _mahjongCellSizeX;
-			_mahjongGlobalOffset = new Vector2(0, (adaptHeight - Size.X * (originYRatio / originXRatio)) / 2);  // 上下居中
+			
+			unit = (Size.X / _levelSizeXRatio);
+			var adaptHeight = Size.Y - slotSizeYRatio * unit;
+			var levelHeight = originSizeYRatio * unit;
+			_mahjongGlobalOffset = new Vector2(0, (adaptHeight - levelHeight) / 2);  // 上下居中
 			GD.Print($"containerRatio H {_mahjongGlobalOffset}");
 		}
 		else  // 宽度相同，高度较低
@@ -92,22 +97,74 @@ public partial class MahjongContainer : Control
 			// 顶格，x做调整
 			// _mahjongGlobalOffset = new Vector2((Size.X - Size.Y / levelOriginalRatio) / 2, 0); // 如果容器的高宽比高于原始高宽比，则麻将容器从 0 开始
 			_containerSizeXRatio = _levelSizeXRatio * levelOriginalRatio / containerRatio;
-			_mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio;
-			_mahjongGlobalOffset = new Vector2((Size.X - Size.Y / (originYRatio / originXRatio)) / 2,0);
+			unit = (Size.Y / _levelSizeYRatio);
+			var levelWidth = originSizeXRatio * unit;
+			_mahjongGlobalOffset = new Vector2((Size.X - levelWidth) / 2,0);
 			GD.Print($"containerRatio w {_mahjongGlobalOffset}");
-			//  levelOriginalRatio / containerRatio 关卡在高度上的缩放比例 这个原始关卡较高，这是一个 > 1的值
-			//  _containerSizeXRatio 是实际计算出来的 适配后的缩放比
-		
 		}
 		/*
 		 * 加上层数的总共偏移，这样不需要在增加麻将实例的时候不需要额外传参
 		 * 否则就需要在 AddMahjongScene() 方法里加一个最大层数，如果加上这个总共偏移就在全局偏移的基础上减去
 		 */
-		// _mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio; // 适配后，单个麻将的实际宽度
+		_mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio; // 适配后，单个麻将的实际宽度
 		
 		var maxZOffset = _mahjongCellSizeX * new Vector2(MahjongLayerXOffset, MahjongLayerYOffset) * (level.Size.Z() - 1);
 		_mahjongGlobalOffset += maxZOffset;  // 最下层的第一个麻将
+		GD.Print($"_mahjongGlobalOffset + z: {_mahjongGlobalOffset}");
 	}
+	
+	// private void SetContainerDisplayParameter(LevelDto level)
+	// {
+	// 	/*
+	// 	 * 长度宽度就是单层的长宽加上长宽对应的层偏移
+	// 	 * - 有 n 层就需要 (n - 1) 个层偏移
+	// 	 */
+	// 	_levelSizeXRatio = (level.Size.X() + MahjongSizeXScaleFactor - 1) * MahjongCellXRatio + (level.Size.Z() - 1) * MahjongLayerXOffset;
+	// 	_levelSizeYRatio = (level.Size.Y() + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio + (level.Size.Z() - 1) * MahjongLayerYOffset;
+	//
+	// 	// 在加上卡槽的高度
+	// 	var originXRatio = _levelSizeXRatio;
+	// 	var originYRatio = _levelSizeYRatio;
+	// 	_levelSizeXRatio += Math.Max(0, (_slotCapacity - level.Size.X()) * MahjongCellXRatio);
+	// 	_levelSizeYRatio += ((1 + _boardAndSlotGapRatio + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio);
+	// 	
+	// 	var containerRatio = Size.Y / Size.X; // 现在麻将容器的高 / 宽
+	// 	var levelOriginalRatio = _levelSizeYRatio / _levelSizeXRatio; // 现在关卡显示比例的高 / 宽
+	// 	
+	// 	// 为保证适配正常，需要分两种情况计算麻将偏移，以及计算整个容器的宽度和麻将宽度的比例
+	// 	if (containerRatio >= levelOriginalRatio) // 宽度相同，容器高度偏高
+	// 	{
+	// 		// 第一个麻将的初始位置 紧贴左边，关卡上下居中是的左上角位置   这是最上层的第一个麻将
+	// 		// _mahjongGlobalOffset = new Vector2(0, (Size.Y - Size.X * levelOriginalRatio) / 2); // 如果容器的高宽比高于原始高宽比，则麻将容器从 0 开始
+	// 		_containerSizeXRatio = _levelSizeXRatio; 
+	// 		_mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio;
+	// 		var adaptHeight = Size.Y - ((1 + _boardAndSlotGapRatio + MahjongSizeYScaleFactor - 1) * MahjongCellYRatio) * _mahjongCellSizeX;
+	// 		var levelHeight = originYRatio * MahjongCellYRatio * _mahjongCellSizeX;
+	// 		_mahjongGlobalOffset = new Vector2(0, (adaptHeight - levelHeight) / 2);  // 上下居中
+	// 		GD.Print($"containerRatio H {_mahjongGlobalOffset}");
+	// 	}
+	// 	else  // 宽度相同，高度较低
+	// 	{
+	// 		// 顶格，x做调整
+	// 		// _mahjongGlobalOffset = new Vector2((Size.X - Size.Y / levelOriginalRatio) / 2, 0); // 如果容器的高宽比高于原始高宽比，则麻将容器从 0 开始
+	// 		_containerSizeXRatio = _levelSizeXRatio * levelOriginalRatio / containerRatio;
+	// 		_mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio;
+	// 		var levelWidth = (_mahjongCellSizeX / MahjongCellXRatio) * originXRatio;
+	// 		_mahjongGlobalOffset = new Vector2((Size.X - levelWidth) / 2,0);
+	// 		GD.Print($"containerRatio w {_mahjongGlobalOffset}");
+	// 		//  levelOriginalRatio / containerRatio 关卡在高度上的缩放比例 这个原始关卡较高，这是一个 > 1的值
+	// 		//  _containerSizeXRatio 是实际计算出来的 适配后的缩放比
+	// 	
+	// 	}
+	// 	/*
+	// 	 * 加上层数的总共偏移，这样不需要在增加麻将实例的时候不需要额外传参
+	// 	 * 否则就需要在 AddMahjongScene() 方法里加一个最大层数，如果加上这个总共偏移就在全局偏移的基础上减去
+	// 	 */
+	// 	// _mahjongCellSizeX = Size.X / _containerSizeXRatio * MahjongCellXRatio; // 适配后，单个麻将的实际宽度
+	// 	
+	// 	var maxZOffset = _mahjongCellSizeX * new Vector2(MahjongLayerXOffset, MahjongLayerYOffset) * (level.Size.Z() - 1);
+	// 	_mahjongGlobalOffset += maxZOffset;  // 最下层的第一个麻将
+	// }
 	
 	/// <summary>
 	/// 根据传入参数 (麻将在数据层的比例和体积)，增加麻将实例的方法
@@ -215,27 +272,12 @@ public partial class MahjongContainer : Control
 	{
 		var slotScene = SlotScene.Instantiate<SlotContainer>();
 
-		var width = _mahjongCellSizeX * 2 * MahjongSizeXScaleFactor;
-		var height = _mahjongCellSizeX *  2 * MahjongCellYRatio / MahjongCellXRatio * MahjongSizeYScaleFactor;
+		var width = _mahjongCellSizeX * 2;
+		var height = _mahjongCellSizeX *  2 * MahjongCellYRatio / MahjongCellXRatio;
 		GD.Print($"{_mahjongCellSizeX}, width: {_mahjongCellSizeX}, height: {height}");
 		slotScene.Initialize(width, height, _slotCapacity);	
-		// slotScene.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-		// slotScene.SizeFlagsVertical = SizeFlags.ExpandFill;
 		AddChild(slotScene);
 		_slot = slotScene;
-		//
-		// _slot.SetAnchor(Side.Top, 1f);
-		// _slot.SetAnchor(Side.Bottom, 1f);
-		// _slot.SetAnchor(Side.Left, 0.5f);
-		// _slot.SetAnchor(Side.Right, 0.5f);
-
-		// _slot.SetPosition(new Vector2(0, 0));
-		// var width = _mahjongCellSizeX * _slotCapacity;
-		// var height = _mahjongCellSizeX * MahjongCellYRatio / MahjongCellXRatio;
-		// _slot.SetOffset(Side.Left, -width / 2.0f);
-		// _slot.SetOffset(Side.Right, width / 2.0f);
-		// _slot.SetOffset(Side.Top, -height);
-		// _slot.SetOffset(Side.Bottom, 0);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
