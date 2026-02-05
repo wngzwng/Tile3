@@ -242,14 +242,22 @@ public partial class MahjongContainer : Control
 
 		InitSlotScene();
 
-		for (var i = 0; i < _slotCapacity; i++)
+		int placeCount = 6;
+		while (placeCount-- > 0)
 		{
 			var mahjong = MahjongScene.Instantiate<MahjongScene>();
-			mahjong.SetColor(mjDto[i].Color);
-			mahjong.SetIndex(mjDto[i].Index);
+			mahjong.SetColor(mjDto[placeCount * (int)Random.Shared.NextInt64(1, 2)].Color);
+			mahjong.SetIndex(mjDto[placeCount * (int)Random.Shared.NextInt64(1, 2)].Index);
 			_slot.AddMahjongScene(mahjong);
-			
 		}
+		// for (var i = mjDto.Count - 1; i > (mjDto.Count - 1 - 6); i--)
+		// {
+		// 	var mahjong = MahjongScene.Instantiate<MahjongScene>();
+		// 	mahjong.SetColor(mjDto[i].Color);
+		// 	mahjong.SetIndex(mjDto[i].Index);
+		// 	_slot.AddMahjongScene(mahjong);
+		// 	
+		// }
 	}
 	
 	// Called when the node enters the scene tree for the first time.
