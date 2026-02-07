@@ -1,5 +1,7 @@
 using System.Text;
 using ThreeTile.Core.Core.LayerShadows;
+using ThreeTile.Core.ExtensionTools;
+
 namespace ThreeTile.Core.Core.Zones;
 
 using Position = int;
@@ -219,6 +221,53 @@ public sealed class Pasture
 
         // 3️⃣ 返回
         return clone;
+    }
+
+    public void Expand(Tile tile, ref HashSet<Tile> expanders)
+    {
+        // 先简单处理，只展开它压着的那层
+        var downNeighbours = tile.TilePositionIndex.GetPositionDownNeighbourPositions();
+        foreach (var downNeighbour in downNeighbours)
+        {
+            if (PosTileDict.TryGetValue(downNeighbour, out var targetTile))
+                expanders.Add(targetTile);
+        }
+    }
+
+    /// <summary>
+    /// 返回所有“直接导致 tile 被锁定”的棋子
+    /// 即：只要它们还在，tile 就不可能可选
+    /// </summary>
+    public void LockersOf(Tile tile, ref HashSet<Tile> blocker, bool all = false)
+    {
+        // 如果 tile 本身已经可选，说明没有锁定者
+        if (!tile.IsLocked)
+            return;
+
+        // 获取该棋子的上方邻居
+        var upNeighbours = tile.TilePositionIndex.GetPositionUpNeighbourPositions();
+        var curblocker = new HashSet<Tile>(); // 这次的blocker
+        foreach (var neighbour in upNeighbours)
+        {
+            if (PosTileDict.TryGetValue(neighbour, out var targetTile))
+                curblocker.Add(targetTile);
+        }
+
+        if (!all)
+        {
+            blocker.UnionWith(curblocker);
+            return;
+        }
+
+        var newBlocker = curblocker.Except(blocker).ToHashSet();
+        blocker.UnionWith(curblocker);
+        if (newBlocker.Count > 0)
+        {
+            foreach (var newB in newBlocker)
+            {
+                LockersOf(newB, ref blocker, all);
+            }
+        }
     }
     
     public override string ToString()

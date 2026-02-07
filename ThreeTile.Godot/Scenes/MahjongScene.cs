@@ -11,8 +11,8 @@ public partial class MahjongScene : Control
 {
     [Export] public TextureRect ModelTexture;
     [Export] public TextureRect ColorTexture;
-    
 
+    private Material _material;
     /// 牌面资源中，宽度上边框的占比
     private const float WidthBorderRatio = 0.0802395210f;
     /// 牌面资源中，高度上边框的占比
@@ -56,6 +56,11 @@ public partial class MahjongScene : Control
         }
         SetMahjongBehavior();
     }
+
+    public void SetHighLight(bool highLight)
+    {
+        ModelTexture.Material = highLight ? _material : null;
+    }
     
     public int Index { get; private set; }
 
@@ -93,6 +98,13 @@ public partial class MahjongScene : Control
     {
         ModelTexture.SetTexture(TextureAssetsManager.ModelTexture);
         Resized += SetMahjongBehavior;
+        // ⚠️ 关键：复制一份独立的 Material
+        if (ModelTexture.Material is ShaderMaterial sm)
+        {
+            _material = (ShaderMaterial)sm.Duplicate();
+        }
+        // 初始状态：不高亮
+        ModelTexture.Material = null;
     }
 
     public override void _Process(double delta)

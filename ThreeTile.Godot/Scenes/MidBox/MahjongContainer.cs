@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Godot;
+using ThreeTile.Core.Core.Moves;
 using ThreeTile.Core.ExtensionTools;
 using Tile3.AutoLoads;
 
@@ -9,6 +13,8 @@ public partial class MahjongContainer : Control
 {
 	[Export] public PackedScene MahjongScene { get; set; }
 	[Export] public PackedScene SlotScene { get; set; }
+	
+	[Export] public PackedScene BehaviorCatalogScene { get; set; }
 	
 	#region 麻将在容器中相关的一些参数
 
@@ -55,6 +61,9 @@ public partial class MahjongContainer : Control
 	#endregion
 
 	private SlotContainer _slot;
+	private BehaviorCatalog _behaviorCatalog;
+
+	private Dictionary<int, MahjongScene> IndexToMahjong = new();
 	
 	/// <summary>
 	/// 根据目前数据层的麻将集合实例，计算显示层麻将容器的显示比例的方法 (高 / 宽)
@@ -173,6 +182,7 @@ public partial class MahjongContainer : Control
 	{
 		var mahjong = MahjongScene.Instantiate<MahjongScene>();
 		AddChild(mahjong);
+		IndexToMahjong[index] = mahjong;
 		
 		mahjong.SetColor(color);
 		mahjong.SetIndex(index);
@@ -221,15 +231,67 @@ public partial class MahjongContainer : Control
 	{
 		if (Size.X * Size.Y <= 1)
 			return;
-		
-		foreach (var c in GetChildren())
-			c.QueueFree();
 
+		foreach (var c in GetChildren())
+		{
+			RemoveChild(c);	
+		}
+
+		// var srcTile = LevelManager.Instance.LevelCore.Pasture.IndexToTileDict[39];
+		// var descTile = LevelManager.Instance.LevelCore.Pasture.IndexToTileDict[69];
+		// var oldcolor = srcTile.Color;
+		// srcTile.SetColor(descTile.Color);
+		// descTile.SetColor(oldcolor);
+		//
+		// GD.Print(LevelManager.Instance.LevelCore.Pasture.Tiles.Serialize());
+		//
+		// LevelManager.Instance.UpdateMahjongDtos();
+		// LevelManager.Instance.UpdateLevelDto();
+		
 		var mjDto = LevelManager.Instance.TileDtos;
 		GD.Print(mjDto[0]);
 		var lvDto = LevelManager.Instance.LevelDto;
 		GD.Print(lvDto);
 		SetContainerDisplayParameter(lvDto);
+		IndexToMahjong.Clear();
+		// foreach (var m in mjDto)
+		// {
+		// 	if (m.Color <= 0)
+		// 	{
+		// 		GD.Print(m);
+		// 	}
+		// 	AddMahjongScene(m.Position, m.Volume, m.Color, m.Index);
+		// }
+		ClearHighLightTiles();
+		InitSlotScene();
+		//
+		// int placeCount = 0;
+		// var level = LevelManager.Instance.LevelCore;
+		// int[] target = [66, 52];
+		// GD.Print($"select index: before");
+		// while (placeCount < 2)
+		// {
+		// 	// var tiles = level.Pasture.UnlockingTiles;
+		// 	// var selectTils = tiles[Random.Shared.Next(tiles.Count)];
+		// 	GD.Print($"select index: {placeCount}");
+		// 	var index = target[placeCount++];
+		// 	var move = new SelectMove(index);
+		// 	try
+		// 	{
+		// 		level.DoMove(move);
+		// 	}
+		// 	catch (Exception e)
+		// 	{
+		// 		GD.Print(e.Message);
+		// 		continue;
+		// 	}
+		//
+		// 	var mjD = mjDto.First(mj => mj.Index == index);
+		// 	var mahjong = MahjongScene.Instantiate<MahjongScene>();
+		// 	mahjong.SetColor(mjD.Color);
+		// 	mahjong.SetIndex(mjD.Index);
+		// 	_slot.AddMahjongScene(mahjong);
+		// }
 		
 		foreach (var m in mjDto)
 		{
@@ -237,18 +299,8 @@ public partial class MahjongContainer : Control
 			{
 				GD.Print(m);
 			}
+			if (!LevelManager.Instance.LevelCore.Pasture.IndexToTileDict.ContainsKey(m.Index)) return;
 			AddMahjongScene(m.Position, m.Volume, m.Color, m.Index);
-		}
-
-		InitSlotScene();
-
-		int placeCount = 6;
-		while (placeCount-- > 0)
-		{
-			var mahjong = MahjongScene.Instantiate<MahjongScene>();
-			mahjong.SetColor(mjDto[placeCount * (int)Random.Shared.NextInt64(1, 2)].Color);
-			mahjong.SetIndex(mjDto[placeCount * (int)Random.Shared.NextInt64(1, 2)].Index);
-			_slot.AddMahjongScene(mahjong);
 		}
 		// for (var i = mjDto.Count - 1; i > (mjDto.Count - 1 - 6); i--)
 		// {
@@ -258,6 +310,7 @@ public partial class MahjongContainer : Control
 		// 	_slot.AddMahjongScene(mahjong);
 		// 	
 		// }
+		InitBehaviorCatalog();
 	}
 	
 	// Called when the node enters the scene tree for the first time.
@@ -286,6 +339,131 @@ public partial class MahjongContainer : Control
 		slotScene.Initialize(width, height, _slotCapacity);	
 		AddChild(slotScene);
 		_slot = slotScene;
+	}
+
+	private void InitBehaviorCatalog()
+	{
+		GD.Print("InitBehaviorCatalog");
+		if (BehaviorCatalogScene == null)
+		{
+			GD.PushError("BehaviorCatalogScene is NULL (not assigned in Inspector)");
+			return;
+		}
+		_behaviorCatalog = BehaviorCatalogScene.Instantiate<BehaviorCatalog>();
+		AddChild(_behaviorCatalog);
+		// 等一帧，让 Control 的尺寸/最小尺寸算出来再做布局
+		CallDeferred(nameof(ApplyBehaviorCatalogLayout));
+		_behaviorCatalog.HighlightRequested += (info =>
+		{
+			GD.Print($"需要高亮： {string.Join(",", info.TileIndexes)}");
+			HighLightTiles(info.TileIndexes);
+		});
+
+		if (EventBus.Instance == null)
+		{
+			GD.PushError("EventBus.Instance is NULL (AutoLoad not ready?)");
+		}
+		
+		EventBus.Instance.InitMahjongContainerDisplay += () =>
+		{
+			GD.Print($"填充行为组");
+			CallDeferred(nameof(FillBehaviours));
+		};
+	}
+
+
+	public void HighLightTiles(IEnumerable<int> indexes)
+	{
+		ClearHighLightTiles();
+		foreach (var index in indexes)
+		{
+			IndexToMahjong[index].SetHighLight(true);
+		}
+	}
+
+	public void ClearHighLightTiles()
+	{
+		foreach (var tile in IndexToMahjong.Values)
+		{
+			tile.SetHighLight(false);
+		}
+	}
+
+	private void FillBehaviours()
+	{
+		if (LevelManager.Instance == null)
+		{
+			GD.PushWarning("LevelManager.Instance is NULL, skip FillBehaviours");
+			return;
+		}
+		
+		try
+		{
+			var behaviours = LevelManager.Instance.GetBehaviours();
+			if (_behaviorCatalog != null)
+			{
+				_behaviorCatalog.SetItems(behaviours.Select(behaviour => new ItemInfo()
+				{
+					kind = behaviour.Kind switch
+					{
+						BehaviourKind.EASY_CLEAR  => "EASE CLEAR",
+						BehaviourKind.HARD_CLEAR => "HARD CLEAR",
+						BehaviourKind.FLIP => "FLIP",
+
+						_ => throw new ArgumentOutOfRangeException(
+							nameof(behaviour.Kind),
+							behaviour.Kind,
+							"Unknown behaviour kind"
+						)
+					},
+					Color = behaviour.Color, 
+					TileIndexes =  behaviour.TileIndexes.ToArray()
+				}).ToList());
+
+				// if (!_behaviorCatalog.IsInsideTree())
+				// {
+				// 	AddChild(_behaviorCatalog);
+				// }
+			}
+			else
+			{
+				GD.Print("没有行为组产生"
+					);
+			}
+		}
+		catch (Exception e)
+		{
+			GD.Print(e.Message);
+		}
+		
+		
+	}
+	
+	private void ApplyBehaviorCatalogLayout()
+	{
+		if (_behaviorCatalog == null)
+			return;
+
+		// ---------- 1) 半透明 ----------
+		// Modulate 影响子节点；如果你只想影响自己，用 SelfModulate
+		_behaviorCatalog.Modulate = new Color(1f, 1f, 1f, 0.6f);
+
+		// ---------- 2) 左侧贴边 + 垂直居中 ----------
+		// 锚点：X 贴左（0,0），Y 居中（0.5,0.5）
+		_behaviorCatalog.AnchorLeft = 0f;
+		_behaviorCatalog.AnchorRight = 0f;
+		_behaviorCatalog.AnchorTop = 0.5f;
+		_behaviorCatalog.AnchorBottom = 0.5f;
+
+		// 让“定位点”在控件左侧中点，这样 Position = (0,0) 就是“贴左居中”
+		// 注意：PivotOffset 需要基于当前 Size，所以才用 CallDeferred
+		_behaviorCatalog.PivotOffset = new Vector2(0f, _behaviorCatalog.Size.Y * 0.5f);
+
+		// offsets / position：贴左边，Y 居中
+		_behaviorCatalog.Position = Vector2.Zero;
+
+		// 如果你希望离左边留一点边距，比如 12px：
+		// _behaviorCatalog.Position = new Vector2(12f, 0f);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

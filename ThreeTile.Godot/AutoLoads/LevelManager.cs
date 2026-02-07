@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Godot;
 using ThreeTile.Core.Core;
+using ThreeTile.Core.Core.Moves;
 using ThreeTile.Core.Designer;
 using ThreeTile.Core.ExtensionTools;
 
@@ -26,6 +27,7 @@ public sealed partial class LevelManager: Node
     public LevelDto LevelDto { get; private set; }
     // public LevelInfo LevelInfo { get; private set; }
 
+    public Level LevelCore => _levelCore;
     private void InitLevel(string str)
     {
         int pairCount = 3;
@@ -52,14 +54,14 @@ public sealed partial class LevelManager: Node
     /// 使用当前字段的 levelCore 实例获取所有麻将 DTO 的方法
     /// </summary>
     /// <returns></returns>
-    private void UpdateMahjongDtos()
+    public void UpdateMahjongDtos()
         => TileDtos = _levelCore.Pasture.Tiles.Select(TileDto.GetTileDtoFromTile).ToList();
 
     /// <summary>
     /// 使用当前实例下的 levelCore 获取 levelDto 的方法
     /// </summary>
     /// <returns></returns>
-    private void UpdateLevelDto() => LevelDto = LevelDto.GetLevelDtoFromLevel(_levelCore);
+    public void UpdateLevelDto() => LevelDto = LevelDto.GetLevelDtoFromLevel(_levelCore);
 
     // private void SolveLevelInfo()
     // {
@@ -117,6 +119,12 @@ public sealed partial class LevelManager: Node
         }
         DisplayServer.ClipboardSet(designer.ColoredString);
         EventBus.Instance.EmitSignal(EventBus.SignalName.Alert, "已复制到剪贴板");
+    }
+
+    public IReadOnlyList<BehaviourMove> GetBehaviours()
+    {
+        _levelCore.GetLogicBehaviours3();
+        return _levelCore.LogicBehaviours;
     }
     
     public override void _Ready()

@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://crlhu2eqcso8k"]
+
+[ext_resource type="Script" uid="uid://bl63mwhbitfuf" path="res://Scenes/MidBox/BehaviorCatalog.cs" id="1_kh2td"]
+
+[node name="BehaviorCatalog" type="Panel"]
+offset_right = 75.0
+offset_bottom = 80.0
+script = ExtResource("1_kh2td")
+
+[node name="List" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 75.0
+offset_bottom = 79.0
+
+[node name="Item" type="Control" parent="List"]
+layout_mode = 2
